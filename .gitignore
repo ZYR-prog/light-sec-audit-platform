@@ -1,0 +1,20 @@
+# 系统文件
+Thumbs.db
+.DS_Store
+
+# VSCode
+.vscode/
+
+# Node
+node_modules/
+npm-debug.log
+npm-debug.log*
+
+# SQLite数据库
+*.sqlite
+*.sqlite3
+*.db
+
+# 环境配置（密码不要上传）
+.env
+.env.local
