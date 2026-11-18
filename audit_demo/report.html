@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>安全审计平台 · 审计报告</title>
+  <!-- ✅【固定对接区】Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 🟡【可修改美化区】自定义样式占位 -->
+  <style>
+    @media print {
+      /* ✅【固定对接区】打印样式占位 — 保留注释 */
+      body { background: #fff !important; color: #000 !important; }
+      aside, header, nav, button { display: none !important; }
+      main { margin: 0 !important; padding: 0 !important; }
+      #report-main-container { background: #fff !important; color: #000 !important; }
+    }
+    .nav-item { padding: .75rem 1rem; border-radius: .375rem; color: #d1d5db; }
+    .nav-item:hover { background: #374151; }
+    .nav-item.active { background: #0891b2; color: #fff; }
+  </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex">
+
+  <!-- ✅【固定对接区】公共侧边栏（所有页面复用） -->
+  <aside class="w-64 bg-gray-800 border-r border-gray-700 flex-shrink-0">
+    <div class="p-4 border-b border-gray-700">
+      <h1 class="text-xl font-bold text-cyan-400">🛡️ 安全审计平台</h1>
+    </div>
+    <nav class="p-2 text-sm flex flex-col gap-1">
+      <a href="index.html" class="nav-item">📊 仪表盘</a>
+      <a href="scan.html" class="nav-item">🔍 审计任务</a>
+      <a href="baseline.html" class="nav-item">📋 安全基线库</a>
+      <a href="report.html" class="nav-item active">📑 审计报告</a>
+      <a href="help.html" class="nav-item">❓ 帮助/关于</a>
+    </nav>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="flex-1 p-6 overflow-auto">
+    <!-- 🟡【可修改美化区】标题 & 操作 -->
+    <header class="mb-6 flex items-center justify-between flex-wrap gap-3">
+      <div>
+        <h2 class="text-2xl font-bold">审计报告</h2>
+        <p class="text-gray-400 text-sm mt-1">生成 / 预览 / 打印安全审计报告</p>
+      </div>
+      <div class="flex gap-3">
+        <!-- ✅【固定对接区】报告按钮 -->
+        <button id="report-generate-btn"
+          class="bg-cyan-600 hover:bg-cyan-500 px-5 py-2 rounded font-semibold">
+          📄 生成报告
+        </button>
+        <!-- 后续绑定：generateReport() 由队友对接 -->
+        <button id="report-print-btn"
+          class="bg-gray-600 hover:bg-gray-500 px-5 py-2 rounded font-semibold">
+          🖨️ 打印报告
+        </button>
+        <!-- 后续绑定：window.print() -->
+      </div>
+    </header>
+
+    <!-- ✅【固定对接区】报告主容器（JS 注入完整报告结构） -->
+    <div id="report-main-container"
+      class="bg-gray-800 rounded-lg p-8 min-h-[500px]">
+      <!-- 📌【待填充数据区】后续 JS 注入完整报告 -->
+      <div class="text-center text-gray-500 py-20">
+        <p class="text-lg mb-2">尚未生成报告</p>
+        <p class="text-sm">点击上方"生成报告"按钮创建审计报告</p>
+        <p class="text-xs mt-4 text-gray-600">（如果后端不可用，将显示降级提示）</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ✅【固定对接区】弹窗根容器 -->
+  <div id="modal-container"></div>
+
+  <!-- JS 挂载区：generateReport / window.print / 后端接口降级 -->
+  <script src="app.js"></script>
+</body>
+</html>
+
+<!-- =========================
+  📌 本页面对接清单 · 审计报告
+  =========================
+  包含 ID:
+    • report-generate-btn — 生成按钮
+    • report-print-btn    — 打印按钮
+    • report-main-container — 报告主容器（动态注入）
+    • modal-container     — 弹窗根
+  特殊要求:
+    • 保留 @media print 打印样式占位
+  适合 JS 模块:
+    • generateReport() → HTML 注入
+    • window.print() 绑定
+    • 报告数据拉取 + 降级提示
+  ========================= -->

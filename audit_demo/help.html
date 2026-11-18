@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>安全审计平台 · 帮助与关于</title>
+  <!-- ✅【固定对接区】Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 🟡【可修改美化区】自定义样式占位 -->
+  <style>
+    @media print { /* 报告页专用占位 */ }
+    .nav-item { padding: .75rem 1rem; border-radius: .375rem; color: #d1d5db; }
+    .nav-item:hover { background: #374151; }
+    .nav-item.active { background: #0891b2; color: #fff; }
+  </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex">
+
+  <!-- ✅【固定对接区】公共侧边栏（所有页面复用） -->
+  <aside class="w-64 bg-gray-800 border-r border-gray-700 flex-shrink-0">
+    <div class="p-4 border-b border-gray-700">
+      <h1 class="text-xl font-bold text-cyan-400">🛡️ 安全审计平台</h1>
+    </div>
+    <nav class="p-2 text-sm flex flex-col gap-1">
+      <a href="index.html" class="nav-item">📊 仪表盘</a>
+      <a href="scan.html" class="nav-item">🔍 审计任务</a>
+      <a href="baseline.html" class="nav-item">📋 安全基线库</a>
+      <a href="report.html" class="nav-item">📑 审计报告</a>
+      <a href="help.html" class="nav-item active">❓ 帮助/关于</a>
+    </nav>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="flex-1 p-6 overflow-auto">
+    <!-- 🟡【可修改美化区】标题 -->
+    <header class="mb-6">
+      <h2 class="text-2xl font-bold">帮助 & 关于</h2>
+      <p class="text-gray-400 text-sm mt-1">项目说明 · 使用指南 · 团队信息</p>
+    </header>
+
+    <!-- 🟡【可修改美化区】帮助内容（纯静态，无 JS 挂载） -->
+    <section class="bg-gray-800 rounded-lg p-6 mb-6">
+      <h3 class="font-semibold text-lg mb-4">📖 使用指南</h3>
+      <div class="space-y-3 text-sm text-gray-300">
+        <p><strong class="text-cyan-400">①</strong> 进入「审计任务」页面，上传待扫描文件</p>
+        <p><strong class="text-cyan-400">②</strong> 点击"开始扫描"，等待进度条完成</p>
+        <p><strong class="text-cyan-400">③</strong> 在结果表中查看漏洞详情</p>
+        <p><strong class="text-cyan-400">④</strong> 进入「安全基线库」确认基线规则</p>
+        <p><strong class="text-cyan-400">⑤</strong> 进入「审计报告」生成并导出报告</p>
+      </div>
+    </section>
+
+    <section class="bg-gray-800 rounded-lg p-6 mb-6">
+      <h3 class="font-semibold text-lg mb-4">🧩 技术栈</h3>
+      <ul class="text-sm text-gray-300 list-disc list-inside space-y-1">
+        <li>HTML5 + Tailwind CSS (CDN)</li>
+        <li>原生 JavaScript (ES6+)</li>
+        <li>Chart.js — 风险图表</li>
+        <li>后端接口 — 待队友对接</li>
+      </ul>
+    </section>
+
+    <section class="bg-gray-800 rounded-lg p-6">
+      <h3 class="font-semibold text-lg mb-4">👥 关于本项目</h3>
+      <p class="text-sm text-gray-300 mb-2">
+        这是一个网络安全课程的作业项目，模拟企业级安全审计流程。
+      </p>
+      <p class="text-xs text-gray-500">© 2026 信安大一 · 安全模拟审计小组</p>
+    </section>
+  </main>
+
+  <!-- ✅【固定对接区】弹窗根容器（本页暂无弹窗，保留占位） -->
+  <div id="modal-container"></div>
+
+  <!-- JS 挂载区：本页纯静态，无需业务 JS -->
+  <script src="app.js"></script>
+</body>
+</html>
+
+<!-- =========================
+  📌 本页面对接清单 · 帮助/关于
+  =========================
+  包含 ID:
+    • modal-container — 保留占位（本页暂不使用）
+  说明:
+    • 本页纯静态展示，无业务 ID 需要 JS 对接
+    • 侧边栏 nav-item 仍保持 active 高亮
+  ========================= -->

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<title>安全审计平台 · 仪表盘</title>  
+<!-- ✅【固定对接区】Tailwind CDN -->  
+<script src="https://cdn.tailwindcss.com"></script>  
+<!-- 🟡【可修改美化区】自定义样式占位 -->  
+<style>
+    @media print { /* 报告页专用占位 */ }  
+</style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex">   
+<!-- ✅【固定对接区】公共侧边栏（所有页面复用此结构） -->  
+<aside class="w-64 bg-gray-800 border-r border-gray-700 flex-shrink-0">    
+<div class="p-4 border-b border-gray-700">      
+<h1 class="text-xl font-bold text-cyan-400">🛡️ 安全审计平台</h1>    
+</div>    
+<nav class="p-2 text-sm">
+  <a href="index.html" class="block px-4 py-3 rounded bg-cyan-600 text-white mb-1">📊 仪表盘</a>
+  <a href="scan.html" class="block px-4 py-3 rounded hover:bg-gray-700 mb-1">🔍 审计任务</a>
+  <a href="baseline.html" class="block px-4 py-3 rounded hover:bg-gray-700 mb-1">📋 安全基线库</a>
+  <a href="report.html" class="block px-4 py-3 rounded hover:bg-gray-700 mb-1">📑 审计报告</a>
+  <a href="help.html" class="block px-4 py-3 rounded hover:bg-gray-700 mb-1">❓ 帮助/关于</a>
+</nav>
+</aside>   
+<!-- 主内容区 -->  
+<main class="flex-1 p-6 overflow-auto">    
+<!-- 🟡【可修改美化区】标题区 -->    
+<header class="mb-6">      
+<h2 class="text-2xl font-bold">仪表盘总览</h2>      
+<p class="text-gray-400 text-sm mt-1">实时展示系统安全态势</p>    
+</header>     
+<!-- ✅【固定对接区】风险统计卡片 -->    
+<section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">      
+<div class="bg-gray-800 rounded-lg p-5 border-l-4 border-red-500">        
+<p class="text-gray-400 text-sm">高危漏洞</p>        
+<p id="high-risk-count" class="text-3xl font-bold text-red-400 mt-1">-</p>        
+<!-- 后续 JS 填充：scanResult.summary.high -->      
+</div>      
+<div class="bg-gray-800 rounded-lg p-5 border-l-4 border-yellow-500">        
+<p class="text-gray-400 text-sm">中危漏洞</p>        
+<p id="mid-risk-count" class="text-3xl font-bold text-yellow-400 mt-1">-</p>        
+<!-- 后续 JS 填充：scanResult.summary.mid -->      
+</div>      
+<div class="bg-gray-800 rounded-lg p-5 border-l-4 border-green-500">        
+<p class="text-gray-400 text-sm">低危漏洞</p>        
+<p id="low-risk-count" class="text-3xl font-bold text-green-400 mt-1">-</p>        
+<!-- 后续 JS 填充：scanResult.summary.low -->      
+</div>    
+</section>     
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">      
+<!-- ✅【固定对接区】风险分布图表 -->      
+<div class="bg-gray-800 rounded-lg p-5">        
+<h3 class="font-semibold mb-4">风险分布</h3>        
+<canvas id="chart-risk-distribution" class="w-full h-64"></canvas>        
+<!-- 后续 JS 填充图表：new Chart(ctx, { type: 'doughnut', ... }) -->      
+</div>       
+<!-- ✅【固定对接区】最近扫描 -->      
+<div class="bg-gray-800 rounded-lg p-5">        
+<h3 class="font-semibold mb-4">最近扫描记录</h3>        
+<div id="dashboard-recent-list" class="space-y-2">          
+<!-- 📌【待填充数据区】动态渲染，不要放假数据 -->          
+<p class="text-gray-500 text-sm text-center py-8">暂无扫描记录</p>        
+</div>      
+</div>    
+</div>  
+</main>   
+<!-- ✅【固定对接区】弹窗根容器（本页暂无弹窗需求，保留） -->  
+<div id="modal-container"></div>   
+<!-- JS 挂载区：Chart.js CDN 按需引入 / Dashboard 初始化 / 后端接口降级处理 -->  
+<!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->  
+<script src="app.js"></script>
+</body>
+</html> 
