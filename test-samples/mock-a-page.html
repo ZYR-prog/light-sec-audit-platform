@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>审计任务页 · 联调预演（scan-core 规范版）</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: #0b1220; color: #d7e2f1; display: flex; min-height: 100vh;
+  }
+  .sidebar { width: 190px; background: #0e1729; border-right: 1px solid #1e2a44; padding: 18px 0; flex-shrink: 0; }
+  .brand { padding: 0 20px 18px; color: #38bdf8; font-weight: 700; font-size: 15px; }
+  .nav-item { padding: 11px 20px; color: #93a5c0; font-size: 13px; cursor: pointer; }
+  .nav-item.active { background: #16233c; color: #38bdf8; border-left: 3px solid #38bdf8; }
+  .main { flex: 1; padding: 22px 26px; overflow: auto; }
+  .page-title { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
+  .page-sub { color: #7c8db0; font-size: 12px; margin-bottom: 16px; }
+  .tip { background: #10213a; border: 1px solid #1d3556; color: #7fb6e8; font-size: 12px;
+         padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; line-height: 1.7; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .card { background: #111c31; border: 1px solid #1e2a44; border-radius: 8px; padding: 14px 16px; }
+  .card .label { font-size: 12px; color: #8298b7; margin-bottom: 6px; }
+  .card .value { font-size: 24px; font-weight: 700; }
+  .card.high { border-left: 3px solid #ef4444; } .card.high .value { color: #ef4444; }
+  .card.mid  { border-left: 3px solid #f59e0b; } .card.mid  .value { color: #f59e0b; }
+  .card.low  { border-left: 3px solid #3b82f6; } .card.low  .value { color: #3b82f6; }
+  .panel { background: #0f1a2c; border: 1px solid #1e2a44; border-radius: 8px; padding: 18px; margin-bottom: 16px; }
+  .panel h3 { margin: 0 0 14px; font-size: 14px; color: #c3d3e8; font-weight: 600; }
+  .dropzone { border: 1.5px dashed #2c4066; border-radius: 8px; padding: 34px 20px; text-align: center; color: #7c8db0; font-size: 13px; }
+  .btn { display: inline-block; margin-top: 14px; background: #22c1d6; color: #05202a; border: none;
+         padding: 9px 18px; border-radius: 5px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .btn:hover { background: #3ad3e8; }
+  .btn-mini { background: transparent; border: 1px solid #2c8fa6; color: #38bdf8; padding: 3px 10px;
+              border-radius: 4px; font-size: 12px; cursor: pointer; }
+  .progress-wrap { height: 6px; background: #16233c; border-radius: 4px; overflow: hidden; margin-top: 16px; }
+  .progress-bar { height: 100%; width: 0%; background: #22c1d6; border-radius: 4px; transition: width .25s; }
+  .status { text-align: center; color: #7c8db0; font-size: 12px; margin-top: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead th { background: #16233c; color: #93a5c0; font-weight: 600; text-align: left; padding: 9px 10px; }
+  tbody td { padding: 9px 10px; border-bottom: 1px solid #16233c; color: #c3d3e8; vertical-align: top; }
+  tbody tr:hover { background: #121e33; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 700; color: #fff; }
+  .risk-high { background: #ef4444; } .risk-mid { background: #f59e0b; } .risk-low { background: #3b82f6; }
+  .empty { text-align: center; color: #5c6d8c; padding: 22px 0; }
+  #modal-container { position: fixed; inset: 0; background: rgba(3, 8, 16, .78); display: none;
+                     align-items: center; justify-content: center; padding: 20px; z-index: 100; }
+  .modal-box { background: #101c30; border: 1px solid #24365a; border-radius: 10px;
+               width: min(560px, 92vw); padding: 22px; max-height: 80vh; overflow: auto; }
+  .modal-box h4 { margin: 0 0 14px; color: #e3edfa; font-size: 16px; }
+  .kv { margin-bottom: 10px; font-size: 13px; line-height: 1.7; }
+  .kv b { color: #8fb8dd; font-weight: 600; }
+  .code { background: #0a1424; border: 1px solid #1e2a44; border-radius: 5px; padding: 8px 10px;
+          font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: #7fd4a7; word-break: break-all; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="brand">安全审计平台</div>
+  <div class="nav-item">仪表盘</div>
+  <div class="nav-item active">审计任务</div>
+  <div class="nav-item">安全基线库</div>
+  <div class="nav-item">审计报告</div>
+  <div class="nav-item">帮助/关于</div>
+</div>
+
+<div class="main">
+  <h1 class="page-title">审计任务</h1>
+  <div class="page-sub">上传文件 · 启动扫描 · 查看结果</div>
+
+  <div class="tip">
+    <b>这是联调预演页</b>，id 与队友A 的真实页面完全一致。<br>
+    本页内联的 JS 就是<b>「队友A 在 js/pages/audit-task.js 里该写的代码」</b>，可以直接照抄。<br>
+    必须通过 http 打开（Live Server），双击 file:// 会读不到规则库。
+  </div>
+
+  <!-- ===== 仪表盘三卡片（A 的 id：high/mid/low-risk-count） ===== -->
+  <div class="cards">
+    <div class="card high"><div class="label">高危漏洞</div><div class="value" id="high-risk-count">-</div></div>
+    <div class="card mid"><div class="label">中危漏洞</div><div class="value" id="mid-risk-count">-</div></div>
+    <div class="card low"><div class="label">低危漏洞</div><div class="value" id="low-risk-count">-</div></div>
+  </div>
+
+  <!-- ===== 选文件 + 扫描 ===== -->
+  <div class="panel">
+    <h3>① 选择扫描文件</h3>
+    <div class="dropzone">
+      拖拽文件到此处，或点击下方按钮选择
+      <br>
+      <button class="btn" id="scan-start-btn">选择文件并开始扫描</button>
+      <input type="file" id="upload-file-input" hidden>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="scan-progress-bar"></div></div>
+    <div class="status" id="scan-status-tip">待开始…</div>
+  </div>
+
+  <!-- ===== 结果表格 6 列 ===== -->
+  <div class="panel">
+    <h3>② 扫描结果</h3>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:42px">#</th>
+          <th style="width:190px">漏洞名称</th>
+          <th style="width:90px">风险等级</th>
+          <th style="width:80px">位置</th>
+          <th>描述</th>
+          <th style="width:66px">操作</th>
+        </tr>
+      </thead>
+      <tbody id="result-table-body">
+        <tr><td colspan="6" class="empty">暂无扫描结果，请先上传文件</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 弹窗根（A 的 id：modal-container） -->
+<div id="modal-container"><div class="modal-box" id="modal-body"></div></div>
+
+<script type="module">
+/* ================================================================
+ *  以下代码 = 队友A 需要在 js/pages/audit-task.js 里实现的内容
+ *  核心只有一句： const result = await scanText(text, file.name);
+ * ================================================================ */
+import { scanText, summarize } from "../js/core/scan.js";
+import { LEVEL_CLASS } from "../js/core/data-schema.js";
+
+const $ = (id) => document.getElementById(id);
+
+/* ---------- ① 读文件（正式项目里这段归 js/core/file-reader.js，A 负责） ---------- */
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("文件读取失败"));
+    reader.readAsText(file, "utf-8");
+  });
+}
+
+/* ---------- ② 渲染表格（6 列，# 名称 等级 位置 描述 操作） ---------- */
+function renderTable(result) {
+  const tbody = $("result-table-body");
+  tbody.innerHTML = "";
+
+  if (result.vul_list.length === 0) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = '<td colspan="6" class="empty">未检出风险项，该文件未发现已知漏洞特征</td>';
+    tbody.appendChild(tr);
+    return;
+  }
+
+  result.vul_list.forEach((v, idx) => {
+    const tr = document.createElement("tr");
+    const badgeClass = LEVEL_CLASS[v.level] || "risk-low";
+    tr.innerHTML =
+      `<td>${idx + 1}</td>` +
+      `<td>${v.vname}</td>` +
+      `<td><span class="badge ${badgeClass}">${v.level}</span></td>` +
+      `<td>第 ${v.line} 行</td>` +
+      `<td>${v.description}</td>` +
+      `<td><button class="btn-mini" data-idx="${idx}">详情</button></td>`;
+    tbody.appendChild(tr);
+  });
+
+  // 详情按钮：优先用 A 自己的 window.openModal，否则本页兜底
+  tbody.querySelectorAll("button[data-idx]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const v = result.vul_list[Number(btn.dataset.idx)];
+      const html = `
+        <h4>${v.vid} · ${v.vname}</h4>
+        <div class="kv"><b>风险等级：</b><span class="badge ${LEVEL_CLASS[v.level]}">${v.level}</span></div>
+        <div class="kv"><b>位置：</b>${v.file_name} 第 ${v.line} 行</div>
+        <div class="kv"><b>命中内容：</b><div class="code">${escapeHtml(v.hit_content)}</div></div>
+        <div class="kv"><b>漏洞原理：</b>${v.description}</div>
+        <div class="kv"><b>修复建议：</b>${v.suggestion}</div>`;
+      if (typeof window.openModal === "function") {
+        window.openModal(html);            // A 有自己的弹窗就用 A 的
+      } else {
+        $("modal-body").innerHTML = html;  // 兜底
+        $("modal-container").style.display = "flex";
+      }
+    });
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ---------- ③ 更新三张卡片 ---------- */
+function updateCards(stat) {
+  $("high-risk-count").textContent = stat.high;
+  $("mid-risk-count").textContent = stat.mid;
+  $("low-risk-count").textContent = stat.low;
+}
+
+/* ---------- ④ 主流程：选文件 → 读 → 扫 → 渲染 → 广播事件 ---------- */
+async function handleFile(file) {
+  if (!file) return;
+  const tip = $("scan-status-tip");
+  const bar = $("scan-progress-bar");
+
+  tip.textContent = `正在扫描 ${file.name} …`;
+  bar.style.width = "30%";
+
+  try {
+    const text = await readFileAsText(file);
+    bar.style.width = "70%";
+
+    const result = await scanText(text, file.name);   // ★ 核心调用，就这一句
+
+    renderTable(result);
+    updateCards(result.stat);
+    bar.style.width = "100%";
+    tip.textContent = `扫描完成：${result.scan_meta.file_name} ｜ ${summarize(result)}`;
+
+    // ★ 广播事件：仪表盘（A）、历史记录入库（C）都靠监听这个
+    window.dispatchEvent(new CustomEvent("scan:complete", { detail: result }));
+    console.log("[预演] 已广播 scan:complete：", result.stat);
+
+  } catch (err) {
+    bar.style.width = "0%";
+    tip.textContent = `扫描失败：${err.message}`;
+    console.error("[预演] 扫描出错：", err);
+  }
+}
+
+/* ---------- ⑤ 事件绑定 ---------- */
+// 这行必须由 A 写（B 的模块不绑按钮，避免弹两次文件框）
+$("scan-start-btn").addEventListener("click", () => $("upload-file-input").click());
+$("upload-file-input").addEventListener("change", (e) => handleFile(e.target.files[0]));
+
+// 关弹窗
+$("modal-container").addEventListener("click", (e) => {
+  if (e.target.id === "modal-container") e.target.style.display = "none";
+});
+
+/* ---------- ⑥ 页面级监听示例（演示 A/C 怎么消费事件） ---------- */
+window.addEventListener("scan:complete", (e) => {
+  console.log("[预演] 收到 scan:complete：", {
+    high: e.detail.stat.high, mid: e.detail.stat.mid, low: e.detail.stat.low
+  });
+});
+</script>
+</body>
+</html>

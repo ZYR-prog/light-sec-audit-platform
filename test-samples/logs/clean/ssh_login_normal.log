@@ -1,0 +1,8 @@
+2026-11-16 08:12:33 INFO  sshd[1024]: Accepted publickey for deploy from 10.20.3.15 port 51234 ssh2
+2026-11-16 08:15:02 INFO  sshd[1031]: pam_unix(sshd:session): session opened for user deploy by (uid=0)
+2026-11-16 09:03:44 INFO  sshd[1102]: Received disconnect from 10.20.3.15 port 51234:11: Bye
+2026-11-16 09:22:18 INFO  sshd[1204]: Accepted publickey for ops from 10.20.3.88 port 49122 ssh2
+2026-11-16 10:01:05 INFO  systemd[1]: Started Session 42 of user deploy.
+2026-11-16 11:30:27 INFO  audit: user deploy ran command "df -h" (exit 0)
+2026-11-16 12:05:41 INFO  disk usage 41 percent, memory usage 63 percent
+2026-11-16 13:15:09 INFO  backup job completed: /data/backup/daily-20261116.tar.gz 1.2GB
