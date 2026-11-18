@@ -1,0 +1,9 @@
+css/                        # ===== 样式文件（A 主责）=====
+│   ├── base.css                # 全局基础样式（重置、字体、颜色变量）
+│   ├── layout.css              # 布局样式（导航栏、侧边栏、栅格）
+│   ├── components.css          # 通用组件样式（卡片、按钮、表格、弹窗）
+│   └── pages/                  # 各页面专属样式
+│       ├── dashboard.css
+│       ├── audit-task.css
+│       ├── baseline.css
+│       └── report.css
