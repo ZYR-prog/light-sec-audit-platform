@@ -1,0 +1,19 @@
+ backend/                    # ===== 后端（C 主责，可插拔）=====
+│   ├── app.py                  # Flask 主程序
+│   ├── requirements.txt        # Python 依赖
+│   ├── .env.example            # 环境变量示例
+│   ├── db/
+│   │   ├── schema.sql          # 数据库表结构
+│   │   ├── init_db.py          # 数据库初始化脚本
+│   │   └── database.db         # SQLite 数据库文件（运行时生成）
+│   ├── models/                 # 数据模型
+│   │   ├── user.py
+│   │   ├── audit_record.py
+│   │   └── report.py
+│   ├── routes/                 # 路由
+│   │   ├── auth.py             # 登录注册
+│   │   ├── history.py          # 历史记录 CRUD
+│   │   └── report.py           # 报告存取
+│   ├── utils/                  # 后端工具函数
+│   │   └── security.py         # 密码哈希、token 生成
+│   └── tests/                  # 后端接口测试

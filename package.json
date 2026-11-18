@@ -1,0 +1,11 @@
+{
+  "name": "audit-platform",
+  "private": true,
+  "version": "1.0.0",
+  "description": "轻量级安全审计平台（前端静态 + 可选 Flask 后端）",
+  "type": "module",
+  "scripts": {
+    "test": "node test-samples/selftest.mjs",
+    "serve": "python3 -m http.server 8000"
+  }
+}
