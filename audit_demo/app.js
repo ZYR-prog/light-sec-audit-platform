@@ -26,32 +26,50 @@ $("upload-file-input").addEventListener("change", (e) => {
 
 /* ============ 步骤⑤：把结果渲染进表格 ============ */
 function renderTable(result) {
-  // tbody = scan.html 里 id="result-table-body" 的那个元素
   const tbody = $("result-table-body");
-  tbody.innerHTML = "";  // 先清空之前的内容
+  tbody.innerHTML = "";
 
-  // 如果一条漏洞都没扫到
   if (result.vul_list.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-6">未检出风险项</td></tr>';
     return;
   }
 
-  // 遍历每一条漏洞，变成一行表格
   result.vul_list.forEach((v, idx) => {
     const tr = document.createElement("tr");
-    // v.level 是 "高危"/"中危"/"低危"
-    // LEVEL_CLASS[v.level] 是对应的CSS类名 "risk-high"/"risk-mid"/"risk-low"
     const badgeClass = LEVEL_CLASS[v.level] || "risk-low";
     
+    // ⭐ 第⑥步：给操作列加了"详情"按钮！
     tr.innerHTML =
-      `<td>${idx + 1}</td>` +                    // 序号
-      `<td>${v.vname}</td>` +                    // 漏洞名称
-      `<td><span class="badge ${badgeClass}">${v.level}</span></td>` +  // 等级（带颜色徽章）
-      `<td>第 ${v.line} 行</td>` +                // 位置
-      `<td>${v.hit_content}</td>` +              // 描述（队友B建议用hit_content别用太长的description）
-      `<td>—</td>`;                               // 操作列（先空着）
+      `<td>${idx + 1}</td>` +
+      `<td>${v.vname}</td>` +
+      `<td><span class="badge ${badgeClass}">${v.level}</span></td>` +
+      `<td>第 ${v.line} 行</td>` +
+      `<td>${v.hit_content}</td>` +
+      `<td><button class="btn-mini view-detail" data-idx="${idx}">详情</button></td>`;
     
-    tbody.appendChild(tr);  // 把这一行塞进 tbody
+    tbody.appendChild(tr);
+  });
+
+  // ⭐ 第⑥步：给每个"详情"按钮绑点击事件
+  tbody.querySelectorAll(".view-detail").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.dataset.idx);
+      const v = result.vul_list[idx];
+      
+      // 🎉 用队友的 Modal.alert 显示漏洞详情！
+      // Modal.alert(显示内容, 配置项)
+      Modal.alert(
+        `
+        <b>漏洞编号：</b>${v.vid}<br>
+        <b>风险等级：</b>${v.level}<br>
+        <b>位置：</b>${v.file_name} 第 ${v.line} 行<br>
+        <b>命中内容：</b><code>${v.hit_content}</code><br><br>
+        <b>漏洞原理：</b>${v.description}<br><br>
+        <b>修复建议：</b>${v.suggestion}
+        `,
+        { title: `${v.vname}` }
+      );
+    });
   });
 }
 
@@ -61,20 +79,15 @@ async function handleFile(file) {
   $("scan-progress-bar").style.width = "30%";
 
   try {
-    // ③ 拆快递
     const text = await readFileAsText(file);
     $("scan-progress-bar").style.width = "70%";
 
-    // ④ 喊厨房
     const result = await scanText(text, file.name);
 
-    // ⑤ 端上桌（渲染表格）
     renderTable(result);
 
     $("scan-progress-bar").style.width = "100%";
     $("scan-status-tip").textContent = `扫描完成：${summarize(result)}`;
-
-    // 广播事件（队友C靠这个存历史记录，仪表盘也可以监听）
     window.dispatchEvent(new CustomEvent("scan:complete", { detail: result }));
 
   } catch (err) {
