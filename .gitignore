@@ -1,4 +1,4 @@
-# 系统文件
+﻿# 系统文件
 Thumbs.db
 .DS_Store
 
@@ -18,3 +18,10 @@ npm-debug.log*
 # 环境配置（密码不要上传）
 .env
 .env.local
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.db-wal
+*.db-shm
+*.db-journal
