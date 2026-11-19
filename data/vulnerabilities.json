@@ -16,7 +16,7 @@
     "level": "中危",
     "title": "日志输出账号密码明文",
     "pattern": "password\\s*[=:]\\s*[^\\s\"']{3,}",
-    "exclude_pattern": "^[\\s]*(#|//|;|--)|password\\s*[=:]\\s*(\\*{3,}|\\[?masked|\\[脱敏)",
+    "exclude_pattern": "^[\\s]*(#|//|;|--)|password\\s*[=:]\\s*(\\*{3,}|\\[?masked|\\[脱敏)|password\\s*[=:]\\s*(os\\.(getenv|environ)|getenv|process\\.env|system\\.getenv)",
     "description": "日志中直接打印了明文密码，日志文件一旦被读取或泄露，将直接导致账号凭据外泄。",
     "target_file": ["应用日志文件"],
     "suggestion": "日志打印前对密码、令牌等敏感字段做脱敏处理（如替换为 ***），禁止输出明文凭据。"
@@ -130,5 +130,71 @@
     "description": "MD5 / SHA1 已被证明存在碰撞风险且计算速度过快，用于密码存储时容易被彩虹表批量破解。",
     "target_file": ["源代码"],
     "suggestion": "密码存储改用 bcrypt、scrypt 或 Argon2 等慢哈希算法，并加盐处理。"
+  },
+  {
+    "vid": "VUL013",
+    "vname": "启用不安全的 SSH 协议版本 1",
+    "level": "高危",
+    "title": "SSH Protocol 1 已被启用",
+    "pattern": "^[\\s]*Protocol\\s+[^\\n]*\\b1\\b",
+    "exclude_pattern": "^[\\s]*(#|//|;|--)",
+    "description": "SSH 协议版本 1 的密钥交换与完整性校验机制存在设计缺陷，已被 RFC 4253 明确废弃，攻击者可实施中间人与协议降级攻击。",
+    "target_file": ["Linux配置文件", "sshd_config"],
+    "suggestion": "在 sshd_config 中设置 Protocol 2；新版 OpenSSH 已移除该指令，删除 Protocol 行后默认仅支持版本 2。"
+  },
+  {
+    "vid": "VUL014",
+    "vname": "配置或代码中硬编码弱口令",
+    "level": "高危",
+    "title": "账号密码使用常见弱口令",
+    "pattern": "(password|passwd|pwd)\\s*[=:]\\s*[\\\"'](123456|12345678|111111|888888|admin|root|qwerty|abc123|password|admin123|test123)[\\\"']",
+    "exclude_pattern": "^[\\s]*(#|//|;|--)|[=:]\\s*[\\\"']?(xxx|\\*{3}|your|示例|placeholder)",
+    "description": "配置或代码中直接使用 123456、admin 等常见弱口令，攻击者通过字典爆破可在极短时间内猜到密码并取得账号权限。",
+    "target_file": ["配置文件", "源代码"],
+    "suggestion": "移除硬编码密码，改为通过环境变量或密钥管理服务注入；确需默认密码时，须强制首次登录修改并满足复杂度要求。"
+  },
+  {
+    "vid": "VUL015",
+    "vname": "代码中直接执行系统命令",
+    "level": "高危",
+    "title": "存在命令执行调用（os.system / shell_exec 等）",
+    "pattern": "(os\\.system\\s*\\(|os\\.popen\\s*\\(|shell_exec\\s*\\(|passthru\\s*\\(|Runtime\\.getRuntime\\(\\)\\.exec\\s*\\(|subprocess\\.(call|run|Popen)\\s*\\([^)]*shell\\s*=\\s*True)",
+    "exclude_pattern": "^[\\s]*(#|//|;|--)",
+    "description": "代码直接调用系统命令执行接口，若命令字符串中含有外部可控输入，攻击者可拼接任意命令实现远程命令执行（RCE）。",
+    "target_file": ["源代码"],
+    "suggestion": "改用参数列表形式调用（如 subprocess.run([...])）并关闭 shell=True；对外部输入做白名单校验，避免命令拼接。"
+  },
+  {
+    "vid": "VUL016",
+    "vname": "不安全的反序列化",
+    "level": "高危",
+    "title": "使用 pickle / yaml.load 等不安全反序列化",
+    "pattern": "(pickle\\.loads\\s*\\(|cPickle\\.loads\\s*\\(|marshal\\.loads\\s*\\(|yaml\\.load\\s*\\(|XMLDecoder)",
+    "exclude_pattern": "^[\\s]*(#|//|;|--)|yaml\\.load\\s*\\([^)]*Loader\\s*=",
+    "description": "使用 pickle、marshal、yaml.load 等反序列化接口处理外部数据，攻击者可构造恶意序列化内容在目标机器上执行任意代码。",
+    "target_file": ["源代码"],
+    "suggestion": "改用 JSON 等安全格式；yaml 使用 yaml.safe_load() 或显式指定 Loader=yaml.SafeLoader；禁止反序列化不可信来源的数据。"
+  },
+  {
+    "vid": "VUL017",
+    "vname": "异常详情直接输出",
+    "level": "低危",
+    "title": "捕获异常后打印完整调用栈",
+    "pattern": "(traceback\\.print_exc\\s*\\(|traceback\\.format_exc\\(|printStackTrace\\s*\\(|die\\s*\\(\\s*mysqli_error)",
+    "exclude_pattern": "^[\\s]*(#|//|;|--)",
+    "description": "异常处理中直接打印完整调用栈或数据库错误信息，会把源码路径、函数名、SQL 结构暴露给用户，为后续攻击提供信息支撑。",
+    "target_file": ["源代码", "应用日志文件"],
+    "suggestion": "统一异常处理，对外只返回通用提示，详细堆栈仅写入受控的服务端日志（并做好权限隔离）。"
+  },
+  {
+    "vid": "VUL018",
+    "vname": "数据库连接串含明文密码",
+    "level": "中危",
+    "title": "连接字符串中携带账号与明文口令",
+    "pattern": "(mysql|postgresql|postgres|mongodb|redis|mssql)\\S*://[^:/@\\s]+:[^@\\s/]+@",
+    "exclude_pattern": "^[\\s]*(#|//|;|--)|://\\S*:([\\*]{3}|xxx|your|<|\\$\\{)",
+    "description": "数据库连接字符串中直接写入账号与明文口令，一旦配置文件、源码或日志泄露，攻击者可直接连接数据库获取全部业务数据。",
+    "target_file": ["配置文件", "源代码"],
+    "suggestion": "连接串中的口令改用环境变量或配置中心注入；生产环境使用最小权限账号，并开启数据库访问审计。"
   }
 ]

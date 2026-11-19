@@ -140,15 +140,72 @@
 
 ---
 
+## 二之二、第二批规则（VUL013 ~ VUL018，规则扩容）
+
+> 扩库目标：覆盖「协议配置 / 凭据 / 代码执行 / 反序列化 / 信息泄露 / 连接串」6 类高频风险，把规则总数从 12 条提到 **18 条**。
+> 每条都配了**正例**与**反例**，见 `test-samples/` 与 `selftest.mjs` 的后 5 个用例。
+
+### VUL013 启用不安全的 SSH 协议版本 1 ｜ 高危
+- **目标特征**：`Protocol 1`
+- **正则**：`^[\s]*Protocol\s+[^\n]*\b1\b`
+  - `^[\s]*` 允许行首缩进（部分配置有前导空格）
+  - `[^\n]*\b1\b` 兼容 `Protocol 1,2` 这种"降级但仍启用 1"的写法
+- **排除**：注释行（`#Protocol 1` 不算）
+- **适用**：sshd_config / Linux 配置
+- **为什么高危**：协议 1 的密钥交换与完整性校验机制有设计缺陷，已被 RFC 4253 废弃，可被中间人与降级攻击利用。
+
+### VUL014 配置或代码中硬编码弱口令 ｜ 高危
+- **目标特征**：`password = "123456"` 这类**带引号的**弱口令赋值
+- **正则**：`(password|passwd|pwd)\s*[=:]\s*[\"'](123456|12345678|111111|888888|admin|root|qwerty|abc123|password|admin123|test123)[\"']`
+  - 弱口令清单只放最典型的 10 个，避免误报面扩大
+  - 要求值被引号包裹，避免与日志中的 `password=Admin@123`（无引号）重复命中
+- **排除**：注释行；已脱敏标记（`***`、`xxx`、`your`、`placeholder`）
+- **适用**：配置文件 / 源代码
+- **局限**：强口令硬编码（如 `password="A8f#2kL"`）不在此规则范围，由 VUL018（连接串）与 VUL006（密钥）分担。
+
+### VUL015 代码中直接执行系统命令 ｜ 高危
+- **目标特征**：`os.system(`、`os.popen(`、`shell_exec(`、`passthru(`、`Runtime.getRuntime().exec(`、`subprocess.run(..., shell=True)`
+- **正则**：`(os\.system\s*\(|os\.popen\s*\(|shell_exec\s*\(|passthru\s*\(|Runtime\.getRuntime\(\)\.exec\s*\(|subprocess\.(call|run|Popen)\s*\([^)]*shell\s*=\s*True)`
+- **排除**：注释行
+- **适用**：源代码
+- **为什么单独列**：`subprocess.run([...])` 参数列表调用是安全的（无 shell 解析），只有 `shell=True` 才危险，因此精确到 `shell=True` 分支，避免把安全工作流误报。
+- **局限**：命令字符串被拆成多行拼接时不命中（逐行匹配的固有约束）。
+
+### VUL016 不安全的反序列化 ｜ 高危
+- **目标特征**：`pickle.loads(`、`cPickle.loads(`、`marshal.loads(`、`yaml.load(`、`XMLDecoder`
+- **正则**：`(pickle\.loads\s*\(|cPickle\.loads\s*\(|marshal\.loads\s*\(|yaml\.load\s*\(|XMLDecoder)`
+- **排除**：注释行；`yaml.load(...)` 中显式指定 `Loader=` 的写法（如 `Loader=yaml.SafeLoader`）
+- **适用**：源代码
+- **注意**：`yaml.safe_load(` 的字符串里不含 `.load(` 子串，因此天然不命中，无需额外排除。
+
+### VUL017 异常详情直接输出 ｜ 低危
+- **目标特征**：`traceback.print_exc(`、`traceback.format_exc(`、`printStackTrace(`、`die(mysqli_error`
+- **正则**：`(traceback\.print_exc\s*\(|traceback\.format_exc\(|printStackTrace\s*\(|die\s*\(\s*mysqli_error)`
+- **排除**：注释行
+- **适用**：源代码 / 应用日志
+- **为什么定低危**：不直接造成执行，但会暴露源码路径、函数名、SQL 结构，是攻击者的信息收集入口，与 VUL003（Debug 模式）互为补充。
+
+### VUL018 数据库连接串含明文密码 ｜ 中危
+- **目标特征**：`mysql://root:P@ssw0rd@10.0.0.5:3306/app` 这类带账号口令的 DSN
+- **正则**：`(mysql|postgresql|postgres|mongodb|redis|mssql)\S*://[^:/@\s]+:[^@\s/]+@`
+  - 前半段 `[^:/@\s]+` 是用户名
+  - 后半段 `[^@\s/]+` 是口令（允许含 `@`、不允许含空白和 `/`）
+- **排除**：注释行；口令位为 `***` / `xxx` / `your` / `<...>` / `${ENV}` 的写法
+- **适用**：配置文件 / 源代码
+- **零误报设计**：`mysql://app@host/db`（不含冒号口令）不会被命中，见 `test-samples/code/clean_api.py`。
+
+---
+
 ## 三、规则维护流程（新增一条漏洞时按这个走）
 
-1. 在 `vulnerabilities.json` 里追加一条规则，`vid` 顺延（如 `VUL013`）
+1. 在 `vulnerabilities.json` 里追加一条规则，`vid` 顺延（当前已用到 `VUL018`，下一条从 `VUL019` 开始）
 2. **先去 regex101.com 单独测这条 `pattern`**，确认：
    - 该命中的都能命中（不漏报）
    - 不该命中的不会命中（不误报）
 3. 在本文档补一条对应说明
 4. 在 `test-samples/` 里补一份样例文件（含漏洞的 + 干净的各一份）
 5. 到 `selftest.mjs` 的 `cases` 数组里加一条期望结果
-6. 运行 `node selftest.mjs`，确认 `6/6` 仍全部通过
+6. 运行 `node test-samples/selftest.mjs`，确认 **12/12 全部通过**（当前基线）
 
-> 这个流程就是"规则库 → 测试样例 → 自动化回归"的闭环，也是你交付物里「阶段性测试」的证据。
+> 这个流程就是"规则库 → 测试样例 → 自动化回归"的闭环，也是交付物里「阶段性测试」的证据。
+
