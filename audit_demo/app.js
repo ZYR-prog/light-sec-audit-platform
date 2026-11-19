@@ -1,78 +1,85 @@
-/* =========================================================
- * 🛡️ 安全审计平台 — 统一 JS 入口（队友改这里）
- *
- * 五个页面共用这一个 JS 文件
- * 队友看到页面里的 id → 在下面对应的模块里写代码
- * ========================================================= */
-
-// ==========================================
-// 📌 队友专用工具：找到页面上的元素
-// ==========================================
+import { scanText, summarize } from "../js/core/scan.js";
+import { LEVEL_CLASS } from "../js/core/data-schema.js";
 const $ = (id) => document.getElementById(id);
 
-// ==========================================
-// 📊 仪表盘（index.html）
-// 用到的 id: high-risk-count / mid-risk-count / low-risk-count
-//           chart-risk-distribution / dashboard-recent-list
-// ==========================================
-(function dashboard() {
-  // 如果不是仪表盘页面就跳过
-  if (!$('high-risk-count')) return;
+/* ============ 步骤②：按钮活了 ============ */
+$("scan-start-btn").addEventListener("click", () => {
+  $("upload-file-input").click();
+});
 
-  console.log('[仪表盘] JS 已加载');
+/* ============ 步骤③：拆快递 ============ */
+function readFileAsText(file) {
+  const reader = new FileReader();
+  return new Promise((resolve, reject) => {
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("文件读取失败"));
+    reader.readAsText(file, "utf-8");
+  });
+}
 
-  // 队友在这里写：
-  // 1. 数字填充: $('high-risk-count').textContent = 3
-  // 2. Chart.js 图表
-  // 3. 最近扫描列表渲染
-})();
+/* ============ 步骤③+④：选完文件后的完整流程 ============ */
+$("upload-file-input").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  handleFile(file);
+});
 
-// ==========================================
-// 🔍 审计任务（scan.html）
-// 用到的 id: upload-file-input / scan-start-btn
-//           scan-progress-bar / scan-status-tip
-//           result-table-body
-// ==========================================
-(function scan() {
-  if (!$('scan-start-btn')) return;
+/* ============ 步骤⑤：把结果渲染进表格 ============ */
+function renderTable(result) {
+  // tbody = scan.html 里 id="result-table-body" 的那个元素
+  const tbody = $("result-table-body");
+  tbody.innerHTML = "";  // 先清空之前的内容
 
-  console.log('[审计任务] JS 已加载');
+  // 如果一条漏洞都没扫到
+  if (result.vul_list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-6">未检出风险项</td></tr>';
+    return;
+  }
 
-  // 队友在这里写：
-  // 1. 文件上传逻辑
-  // 2. 扫描按钮 onclick
-  // 3. 进度条更新
-  // 4. 结果表格渲染
-})();
+  // 遍历每一条漏洞，变成一行表格
+  result.vul_list.forEach((v, idx) => {
+    const tr = document.createElement("tr");
+    // v.level 是 "高危"/"中危"/"低危"
+    // LEVEL_CLASS[v.level] 是对应的CSS类名 "risk-high"/"risk-mid"/"risk-low"
+    const badgeClass = LEVEL_CLASS[v.level] || "risk-low";
+    
+    tr.innerHTML =
+      `<td>${idx + 1}</td>` +                    // 序号
+      `<td>${v.vname}</td>` +                    // 漏洞名称
+      `<td><span class="badge ${badgeClass}">${v.level}</span></td>` +  // 等级（带颜色徽章）
+      `<td>第 ${v.line} 行</td>` +                // 位置
+      `<td>${v.hit_content}</td>` +              // 描述（队友B建议用hit_content别用太长的description）
+      `<td>—</td>`;                               // 操作列（先空着）
+    
+    tbody.appendChild(tr);  // 把这一行塞进 tbody
+  });
+}
 
-// ==========================================
-// 📋 安全基线库（baseline.html）
-// 用到的 id: baseline-search-input / baseline-container
-// ==========================================
-(function baseline() {
-  if (!$('baseline-container')) return;
+/* ============ handleFile（把完整流程连起来） ============ */
+async function handleFile(file) {
+  $("scan-status-tip").textContent = `正在扫描 ${file.name} …`;
+  $("scan-progress-bar").style.width = "30%";
 
-  console.log('[基线库] JS 已加载');
+  try {
+    // ③ 拆快递
+    const text = await readFileAsText(file);
+    $("scan-progress-bar").style.width = "70%";
 
-  // 队友在这里写：
-  // 1. 基线列表加载
-  // 2. 搜索过滤
-})();
+    // ④ 喊厨房
+    const result = await scanText(text, file.name);
 
-// ==========================================
-// 📑 审计报告（report.html）
-// 用到的 id: report-generate-btn / report-print-btn / report-main-container
-// ==========================================
-(function report() {
-  if (!$('report-generate-btn')) return;
+    // ⑤ 端上桌（渲染表格）
+    renderTable(result);
 
-  console.log('[审计报告] JS 已加载');
+    $("scan-progress-bar").style.width = "100%";
+    $("scan-status-tip").textContent = `扫描完成：${summarize(result)}`;
 
-  // 队友在这里写：
-  // 1. 生成报告
-  // 2. 打印
-})();
+    // 广播事件（队友C靠这个存历史记录，仪表盘也可以监听）
+    window.dispatchEvent(new CustomEvent("scan:complete", { detail: result }));
 
-// ==========================================
-// ❓ 帮助/关于（help.html）— 纯静态，不用写
-// ==========================================
+  } catch (err) {
+    $("scan-progress-bar").style.width = "0%";
+    $("scan-status-tip").textContent = `扫描失败：${err.message}`;
+    alert("❌ 扫描出错！错误信息：\n" + err.message);
+  }
+}
