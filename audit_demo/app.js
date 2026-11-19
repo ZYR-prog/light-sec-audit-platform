@@ -89,7 +89,8 @@ async function handleFile(file) {
     $("scan-progress-bar").style.width = "100%";
     $("scan-status-tip").textContent = `扫描完成：${summarize(result)}`;
     window.dispatchEvent(new CustomEvent("scan:complete", { detail: result }));
-
+// 存进 localStorage（report.html 会读这份数据）
+localStorage.setItem("scanResult", JSON.stringify(result));
   } catch (err) {
     $("scan-progress-bar").style.width = "0%";
     $("scan-status-tip").textContent = `扫描失败：${err.message}`;
