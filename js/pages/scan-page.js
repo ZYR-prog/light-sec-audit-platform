@@ -19,6 +19,7 @@ import {
   getToken,
   getCurrentUser,
   setCurrentUser,
+  getStorage,
 } from "../api/client.js";
 import { login, register, logout, me } from "../api/auth.js";
 import {
@@ -273,6 +274,11 @@ function openDetail(item) {
  * ================================================================ */
 
 async function persistResult(result) {
+  // 报告页 / 仪表盘读的是同一个 key（scanResult），保证跨页面能拿到最近一次结果
+  const storage = getStorage();
+  if (storage) storage.set("scanResult", result);
+  window.dispatchEvent(new CustomEvent("scan:complete", { detail: result }));
+
   const token = getToken();
 
   if (token) {
