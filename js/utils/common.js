@@ -59,14 +59,20 @@ var Utils = (function() {
       return str;
     }
 
-    return format
-      .replace('YYYY', year)
-      .replace('MM', pad(month))
-      .replace('DD', pad(day))
-      .replace('HH', pad(hour))
-      .replace('mm', pad(minute))
-      .replace('ss', pad(second))
-      .replace('SSS', pad(millisecond, 3));
+    var tokens = {
+      YYYY: String(year),
+      MM: pad(month),
+      DD: pad(day),
+      HH: pad(hour),
+      mm: pad(minute),
+      ss: pad(second),
+      SSS: pad(millisecond, 3)
+    };
+
+    // 用正则一次性替换，避免 SSS 被 ss 抢先匹配、以及重复占位符只替换第一个的问题
+    return format.replace(/YYYY|SSS|MM|DD|HH|mm|ss/g, function (token) {
+      return tokens[token];
+    });
   }
 
   /**
@@ -405,3 +411,9 @@ var Utils = (function() {
     escapeHtml: escapeHtml
   };
 })();
+
+// 同时暴露到 window 和 SAP 前缀 / SAP 命名空间，页面用哪种写法都能接上
+window.Utils = Utils;
+window.SAPUtils = Utils;
+window.SAP = window.SAP || {};
+window.SAP.Utils = Utils;
