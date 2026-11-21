@@ -27,12 +27,15 @@ async function generateReport() {
   // 先读 localStorage
   let result = loadScanResult();
 
-  // 如果没有，加载演示数据
+   // 如果没有，加载演示数据（尝试多种路径兼容不同 Live Server 根目录）
   if (!result) {
-    try {
-      const res = await fetch("../data/demo-scan-result.json");
-      if (res.ok) result = await res.json();
-    } catch (e) { /* 演示数据也加载失败 */ }
+    const paths = ["data/demo-scan-result.json", "../data/demo-scan-result.json", "demo-scan-result.json"];
+    for (const p of paths) {
+      try {
+        const res = await fetch(p);
+        if (res.ok) { result = await res.json(); break; }
+      } catch (e) { continue; }
+    }
   }
 
   const container = $("report-main-container");

@@ -86,12 +86,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 先读 localStorage
   let savedResult = loadScanResult();
 
-  // 如果没有（队友第一次打开），加载演示数据
+   // 如果没有（队友第一次打开），加载演示数据（3路径兼容）
   if (!savedResult) {
-    try {
-      const res = await fetch("../data/demo-scan-result.json");
-      if (res.ok) savedResult = await res.json();
-    } catch (e) { /* 演示数据也加载失败就算了 */ }
+    const paths = ["data/demo-scan-result.json", "../data/demo-scan-result.json", "demo-scan-result.json"];
+    for (const p of paths) {
+      try {
+        const res = await fetch(p);
+        if (res.ok) { savedResult = await res.json(); break; }
+      } catch (e) { continue; }
+    }
   }
 
   if (savedResult) {
