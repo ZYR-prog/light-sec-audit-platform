@@ -11,7 +11,11 @@
     @media print { /* 报告页专用占位 */ }
     .nav-item { padding: .75rem 1rem; border-radius: .375rem; color: #d1d5db; }
     .nav-item:hover { background: #374151; }
-    .nav-item.active { background: #0891b2; color: #fff; }
+    .nav-item.active { background: #0891b2; color: #fff; }    .badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 700; color: #fff; }
+    .risk-high { background: #ef4444; }
+    .risk-mid  { background: #f59e0b; }
+    .risk-low  { background: #3b82f6; }
+
   </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex">
@@ -64,7 +68,8 @@
   <div id="modal-container"></div>
 
   <!-- JS 挂载区：基线列表加载 / 搜索过滤 / 降级处理 -->
-  <script src="app.js"></script>
+<script src="../js/ui/storage.js"></script>
+<script type="module" src="baseline-app.js"></script>
 </body>
 </html>
 

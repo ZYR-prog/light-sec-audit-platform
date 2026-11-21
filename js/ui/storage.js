@@ -192,7 +192,7 @@ var Storage = (function() {
   }
 
   // 对外暴露
-  var api = {
+  return {
     isSupported: isSupported,
     set: set,
     get: get,
@@ -201,8 +201,4 @@ var Storage = (function() {
     has: has,
     getRemainingTime: getRemainingTime
   };
-
-  // 浏览器本身有 window.Storage 接口，额外暴露一个不冲突的名字给 ES Module 用
-  window.SapStorage = api;
-  return api;
 })();

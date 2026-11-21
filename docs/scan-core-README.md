@@ -25,7 +25,7 @@
 ```
 项目根/
 ├── data/
-│   ├── vulnerabilities.json      ← B：18 条漏洞规则库
+│   ├── vulnerabilities.json      ← B：12 条漏洞规则库
 │   ├── scan-rules.md             ← B：每条规则的正则说明
 │   ├── baseline.json             ← A：安全基线库
 │   └── report-template.json      ← A：报告模板
@@ -109,7 +109,7 @@ import { LEVEL, LEVEL_LIST, LEVEL_CLASS, LEVEL_COLOR, VUL_FIELDS, validateResult
   "scan_meta": {
     "file_name": "sshd_bad.conf",
     "total_lines": 16,
-    "rule_count": 18,
+    "rule_count": 12,
     "rule_error_count": 0,
     "cost_ms": 2,
     "scan_time": "2026-11-17T12:00:00.000Z"
@@ -137,7 +137,7 @@ window.addEventListener("scan:complete", (e) => {
 
 | 场景 | 命令 | 结果 |
 |---|---|---|
-| 命令行回归测试 | `node test-samples/selftest.mjs` | **12/12 通过** |
+| 命令行回归测试 | `node test-samples/selftest.mjs` | **7/7 通过** |
 | 浏览器联调预演 | `python -m http.server 8000` → 打开 `/test-samples/mock-a-page.html` | 选 sshd_bad.conf 出 3 行、卡片 3/0/0 |
 | 正式页面 | A 的 `index.html` / 审计任务页 | 同上 |
 
@@ -157,7 +157,7 @@ window.addEventListener("scan:complete", (e) => {
 | configs/web_config.ini | 4 条（中 3 / 低 1） | ✅ |
 | code/app.py | 5 条（高 2 / 中 2 / 低 1） | ✅ |
 
-**12/12 通过。** 详细记录见 `docs/测试记录.md`。
+**7/7 通过。** 详细记录见 `docs/测试记录.md`。
 
 ---
 
@@ -165,7 +165,7 @@ window.addEventListener("scan:complete", (e) => {
 
 1. **只做正则特征匹配**，不做语义分析 → 变形写法的漏洞可能漏报
 2. **单文件扫描**，不跨文件关联（比如 config 引用的证书文件）
-3. **规则库 18 条**（12 条基础 + 6 条扩容），覆盖协议配置/凭据/命令执行/反序列化/信息泄露/连接串 6 类，后续可持续扩展（维护流程见 `data/scan-rules.md`）
+3. **规则库 12 条**，覆盖面有限，后续可持续扩展（维护流程见 `data/scan-rules.md`）
 4. **未做二进制/超大文件优化**，1MB 以上文件未压测
 5. **编码假设 UTF-8**，GBK 文件的中文可能匹配异常
 

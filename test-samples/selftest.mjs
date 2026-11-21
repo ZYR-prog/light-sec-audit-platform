@@ -63,37 +63,6 @@ const cases = [
     file: "code/app.py",
     memo: "2 处硬编码密钥 + eval + SQL 拼接 + md5",
     expect: { total: 5, vids: { VUL006: 2, VUL010: 1, VUL011: 1, VUL012: 1 }, high: 2, mid: 2, low: 1 }
-  },
-
-  /* ---------------- 第二批（扩容规则 13~18 配套） ---------------- */
-  {
-    file: "configs/sshd_legacy.conf",
-    memo: "Protocol 1 + 注释行干扰（VUL013）",
-    expect: { total: 1, vids: { VUL013: 1 }, high: 1, mid: 0, low: 0 }
-  },
-  {
-    file: "code/insecure_api.py",
-    memo: "命令执行 2 + 反序列化 2 + 异常外泄 + 明文连接串",
-    expect: {
-      total: 6,
-      vids: { VUL015: 2, VUL016: 2, VUL017: 1, VUL018: 1 },
-      high: 4, mid: 1, low: 1
-    }
-  },
-  {
-    file: "code/weak_credential.py",
-    memo: "2 处弱口令，脱敏值与环境变量不误报",
-    expect: { total: 2, vids: { VUL014: 2 }, high: 2, mid: 0, low: 0 }
-  },
-  {
-    file: "code/clean_api.py",
-    memo: "全部安全写法，新增规则必须零误报（真阴性）",
-    expect: { total: 0, vids: {}, high: 0, mid: 0, low: 0 }
-  },
-  {
-    file: "logs/clean/empty.txt",
-    memo: "0 字节空文件，不应报错也不应报漏洞",
-    expect: { total: 0, vids: {}, high: 0, mid: 0, low: 0 }
   }
 ];
 

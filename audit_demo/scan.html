@@ -12,10 +12,15 @@
     .nav-item { padding: .75rem 1rem; border-radius: .375rem; color: #d1d5db; }
     .nav-item:hover { background: #374151; }
     .nav-item.active { background: #0891b2; color: #fff; }
-    .risk-badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 12px; line-height: 1.4; white-space: nowrap; }
-    .risk-high { background: rgba(239, 68, 68, .15); color: #f87171; }
-    .risk-mid { background: rgba(245, 158, 11, .15); color: #fbbf24; }
-    .risk-low { background: rgba(59, 130, 246, .15); color: #60a5fa; }
+     /* 等级徽章样式（队友B的 LEVEL_CLASS 对应这三个） */
+    .badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 700; color: #fff; }
+    .risk-high { background: #ef4444; }
+    .risk-mid  { background: #f59e0b; }
+    .risk-low  { background: #3b82f6; }
+
+    /* 详情按钮小样式 */
+    .btn-mini { padding: 2px 10px; font-size: 12px; border-radius: 4px; background: #0891b2; color: #fff; border: none; cursor: pointer; }
+    .btn-mini:hover { background: #0e7490; }
   </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex">
@@ -37,37 +42,24 @@
   <!-- 主内容区 -->
   <main class="flex-1 p-6 overflow-auto">
     <!-- 🟡【可修改美化区】标题 -->
-    <header class="mb-6 flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-      <div>
-        <h2 class="text-2xl font-bold">审计任务</h2>
-        <p class="text-gray-400 text-sm mt-1">上传文件 · 启动扫描 · 查看结果</p>
-      </div>
-      <div class="flex flex-wrap items-center gap-2">
-        <span id="connection-status" class="px-2 py-1 rounded bg-gray-800 text-gray-400 text-xs">检测后端...</span>
-        <span id="auth-status" class="text-gray-400 text-xs">未登录</span>
-        <button id="login-open-btn" class="bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1.5 rounded text-sm">登录 / 注册</button>
-        <button id="logout-btn" class="hidden bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1.5 rounded text-sm">退出</button>
-      </div>
+    <header class="mb-6">
+      <h2 class="text-2xl font-bold">审计任务</h2>
+      <p class="text-gray-400 text-sm mt-1">上传文件 · 启动扫描 · 查看结果</p>
     </header>
 
     <!-- ✅【固定对接区】上传 & 启动 -->
     <section class="bg-gray-800 rounded-lg p-6 mb-6">
       <h3 class="font-semibold mb-4">① 选择扫描文件</h3>
 
-      <div id="drop-zone" class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center mb-4">
+      <div class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center mb-4">
         <!-- ✅ upload-file-input 隐藏 file input，配合自定义按钮 -->
-        <input id="upload-file-input" type="file" class="hidden" multiple
-          accept=".txt,.log,.html,.json,.conf,.ini,.cfg,.py,.yml,.yaml,.sh" />
+        <input id="upload-file-input" type="file" class="hidden" multiple accept=".txt,.log,.html,.json,.pcap,.conf,.ini,.py,.yml,.yaml,.cfg,.sh,.js" />
         <p class="text-gray-400 mb-2">拖拽文件到此处，或点击下方按钮选择</p>
         <button id="scan-start-btn"
           class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2 rounded font-semibold">
           📂 选择文件并开始扫描
         </button>
-        <button id="scan-sample-btn"
-          class="ml-2 bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded font-semibold">
-          🧪 扫描示例文件
-        </button>
-        <p class="text-xs text-gray-500 mt-3">支持 .txt / .log / .html / .json / .conf / .ini / .cfg / .py / .yml / .yaml / .sh，单个文件最大 2MB</p>
+        <!-- 后续绑定：scanStart() 由队友对接 -->
       </div>
 
       <!-- ✅ 进度条 & 状态 -->
@@ -80,16 +72,12 @@
         </div>
       </div>
       <p id="scan-status-tip" class="text-gray-400 text-sm text-center">待开始...</p>
-      <p id="scan-save-status" class="text-xs text-center mt-2 text-gray-500"></p>
       <!-- 后续 JS 填充："扫描中 35%" / "已完成" / 错误降级提示 -->
     </section>
 
     <!-- ✅【固定对接区】扫描结果表格 -->
     <section class="bg-gray-800 rounded-lg p-6">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
-        <h3 class="font-semibold">② 扫描结果</h3>
-        <p id="result-summary" class="text-sm text-gray-400">暂无结果</p>
-      </div>
+      <h3 class="font-semibold mb-4">② 扫描结果</h3>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead class="bg-gray-700 text-gray-300">
@@ -109,57 +97,15 @@
         </table>
       </div>
     </section>
-
-    <!-- ✅ 历史审计记录：登录走 /api/reports，未登录走 localStorage -->
-    <section class="bg-gray-800 rounded-lg p-6 mt-6">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
-        <div>
-          <h3 class="font-semibold">③ 历史审计记录</h3>
-          <p class="text-xs text-gray-500 mt-1">登录后保存到后端；未登录或后端不可用时保存在本机浏览器</p>
-        </div>
-        <button id="history-refresh-btn"
-          class="text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1.5 rounded">刷新</button>
-      </div>
-      <div id="history-list" class="space-y-2">
-        <p class="text-gray-500 text-sm text-center py-6">暂无历史记录，先扫描一个文件试试</p>
-      </div>
-    </section>
   </main>
-
-  <!-- ✅ 登录 / 注册弹窗 -->
-  <div id="auth-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-    <div class="bg-gray-800 rounded-lg w-full max-w-sm p-6 relative">
-      <button id="auth-close" class="absolute top-3 right-3 text-gray-400 hover:text-white">✕</button>
-      <h3 id="auth-title" class="text-lg font-semibold mb-4">登录</h3>
-
-      <label class="block text-sm text-gray-400 mb-1" for="auth-username">用户名</label>
-      <input id="auth-username" type="text" autocomplete="username"
-        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 mb-3 text-sm focus:outline-none focus:border-cyan-500" />
-
-      <label class="block text-sm text-gray-400 mb-1" for="auth-password">密码</label>
-      <input id="auth-password" type="password" autocomplete="current-password"
-        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 mb-3 text-sm focus:outline-none focus:border-cyan-500" />
-
-      <p id="auth-error" class="hidden text-red-400 text-xs mb-3"></p>
-
-      <button id="auth-submit"
-        class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-2 rounded font-semibold">登录</button>
-
-      <p class="text-center text-xs text-gray-400 mt-3">
-        <span id="auth-switch-tip">还没有账号？</span>
-        <button id="auth-switch" class="text-cyan-400 hover:underline">去注册</button>
-      </p>
-      <p class="text-center text-xs text-gray-500 mt-2">不登录也能扫描，结果只保存在本机</p>
-    </div>
-  </div>
 
   <!-- ✅【固定对接区】弹窗根容器 -->
   <div id="modal-container"></div>
 
-  <!-- JS 挂载区：Storage / Utils 是全局工具；扫描页用 ES Module -->
-  <script src="../js/ui/storage.js"></script>
-  <script src="../js/utils/common.js"></script>
-  <script type="module" src="../js/pages/scan-page.js?v=2"></script>
+  <!-- JS 挂载区：FileReader / scanStart / 后端接口降级 -->
+<script src="../js/ui/storage.js"></script>
+<script src="../js/ui/modal.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>
 

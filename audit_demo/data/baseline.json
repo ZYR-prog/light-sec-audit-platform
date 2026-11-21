@@ -1,0 +1,122 @@
+[
+  {
+    "bid": "BL001",
+    "category": "Linux 安全配置",
+    "name": "SSH 应禁用密码登录认证",
+    "level": "高危",
+    "target": "sshd_config",
+    "standard": "PasswordAuthentication no",
+    "reference_vul": "VUL001",
+    "description": "SSH 服务应关闭密码登录，统一使用 SSH 密钥认证，防止暴力破解。"
+  },
+  {
+    "bid": "BL002",
+    "category": "Linux 安全配置",
+    "name": "禁止 root 账号直接远程登录",
+    "level": "高危",
+    "target": "sshd_config",
+    "standard": "PermitRootLogin no",
+    "reference_vul": "VUL004",
+    "description": "禁止 root 直接 SSH 登录，改用普通账号登录后 sudo 提权，便于操作追溯。"
+  },
+  {
+    "bid": "BL003",
+    "category": "Linux 安全配置",
+    "name": "禁止 SSH 空密码登录",
+    "level": "高危",
+    "target": "sshd_config",
+    "standard": "PermitEmptyPasswords no",
+    "reference_vul": "VUL005",
+    "description": "禁止空口令账号登录，所有 SSH 账号必须设置强密码或使用密钥。"
+  },
+  {
+    "bid": "BL004",
+    "category": "Web 安全配置",
+    "name": "生产环境应关闭 Debug 调试模式",
+    "level": "中危",
+    "target": "Web 应用配置",
+    "standard": "Debug = False",
+    "reference_vul": "VUL003",
+    "description": "生产环境禁止开启调试模式，防止敏感错误信息泄露。"
+  },
+  {
+    "bid": "BL005",
+    "category": "Web 安全配置",
+    "name": "Web 服务应启用 HTTPS 加密传输",
+    "level": "中危",
+    "target": "Web 服务器配置",
+    "standard": "SSLEnabled = On",
+    "reference_vul": "VUL009",
+    "description": "启用 HTTPS 加密传输层，HTTP 请求应强制跳转 HTTPS。"
+  },
+  {
+    "bid": "BL006",
+    "category": "Web 安全配置",
+    "name": "禁止开启目录浏览功能",
+    "level": "中危",
+    "target": "Apache / Nginx 配置",
+    "standard": "Options -Indexes",
+    "reference_vul": "VUL007",
+    "description": "关闭目录自动列表功能，防止攻击者发现敏感备份文件。"
+  },
+  {
+    "bid": "BL007",
+    "category": "日志安全",
+    "name": "日志禁止输出明文密码和密钥",
+    "level": "中危",
+    "target": "应用日志配置",
+    "standard": "敏感字段脱敏处理",
+    "reference_vul": "VUL002",
+    "description": "日志打印前对密码、令牌、密钥等敏感字段做脱敏处理（如替换为 ***）。"
+  },
+  {
+    "bid": "BL008",
+    "category": "源代码安全",
+    "name": "密钥和凭据禁止硬编码",
+    "level": "高危",
+    "target": "代码 / 配置文件",
+    "standard": "使用环境变量或密钥管理服务",
+    "reference_vul": "VUL006",
+    "description": "API Key、Secret Key、密码等凭据应存放在环境变量或密钥管理服务中。"
+  },
+  {
+    "bid": "BL009",
+    "category": "源代码安全",
+    "name": "禁止使用 eval 动态执行代码",
+    "level": "中危",
+    "target": "源代码",
+    "standard": "使用安全解析方式替代",
+    "reference_vul": "VUL010",
+    "description": "移除 eval 调用，改用 JSON.parse、白名单映射表等安全方式替代动态执行。"
+  },
+  {
+    "bid": "BL010",
+    "category": "源代码安全",
+    "name": "SQL 查询必须使用参数化",
+    "level": "中危",
+    "target": "源代码",
+    "standard": "使用 PreparedStatement / ORM",
+    "reference_vul": "VUL011",
+    "description": "SQL 查询禁止字符串拼接变量，必须使用预编译参数化查询，防止 SQL 注入。"
+  },
+  {
+    "bid": "BL011",
+    "category": "源代码安全",
+    "name": "密码存储使用强哈希算法",
+    "level": "低危",
+    "target": "源代码",
+    "standard": "使用 bcrypt / scrypt / Argon2",
+    "reference_vul": "VUL012",
+    "description": "禁止使用 MD5、SHA1 等弱哈希，密码存储改用 bcrypt、scrypt 或 Argon2 并加盐。"
+  },
+  {
+    "bid": "BL012",
+    "category": "Web 安全配置",
+    "name": "禁用危险 HTTP 方法",
+    "level": "低危",
+    "target": "Web 服务器配置",
+    "standard": "TraceEnable Off",
+    "reference_vul": "VUL008",
+    "description": "禁用 TRACE、CONNECT 等非必要的 HTTP 方法，减少攻击面。"
+  }
+]

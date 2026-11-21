@@ -1,0 +1,48 @@
+{
+  "scan_meta": {
+    "file_name": "sshd_bad.conf",
+    "total_lines": 17,
+    "rule_count": 12,
+    "rule_error_count": 0,
+    "cost_ms": 1,
+    "scan_time": "2026/11/20 15:30:00"
+  },
+  "stat": {
+    "high": 3,
+    "mid": 0,
+    "low": 0,
+    "total": 3
+  },
+  "vul_list": [
+    {
+      "vid": "VUL001",
+      "vname": "SSH 开启密码登录认证",
+      "level": "高危",
+      "line": 8,
+      "file_name": "sshd_bad.conf",
+      "hit_content": "PasswordAuthentication yes",
+      "description": "SSH 服务允许使用密码进行远程登录，容易受到暴力破解攻击。",
+      "suggestion": "将 PasswordAuthentication 设置为 no，改用 SSH 密钥认证。"
+    },
+    {
+      "vid": "VUL004",
+      "vname": "SSH 允许 root 直接登录",
+      "level": "高危",
+      "line": 6,
+      "file_name": "sshd_bad.conf",
+      "hit_content": "PermitRootLogin yes",
+      "description": "SSH 服务允许 root 账号直接远程登录，容易被攻击者利用。",
+      "suggestion": "将 PermitRootLogin 设置为 no，使用普通账号登录后 sudo 提权。"
+    },
+    {
+      "vid": "VUL005",
+      "vname": "SSH 允许空密码登录",
+      "level": "高危",
+      "line": 9,
+      "file_name": "sshd_bad.conf",
+      "hit_content": "PermitEmptyPasswords yes",
+      "description": "SSH 服务允许空密码账号远程登录，任何人都能访问。",
+      "suggestion": "将 PermitEmptyPasswords 设置为 no。"
+    }
+  ]
+}
