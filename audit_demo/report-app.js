@@ -42,7 +42,6 @@ async function generateReport() {
     });
     return;
   }
-
   container.innerHTML = `
     ${renderHeader(result.scan_meta)}
     ${renderSummary(result.stat)}
